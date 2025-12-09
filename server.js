@@ -12,6 +12,13 @@ app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.static(path.join(__dirname, '../frontend')));
 
+app.get('/', (req, res) => {
+  res.send({
+    activeStatus: true,
+    error: false,
+    message: 'Portfolio API is running!'
+  })
+})
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/portfolio')
   .then(() => console.log('✅ MongoDB Connected Successfully'))
