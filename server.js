@@ -7,10 +7,19 @@ require('dotenv').config();
 const app = express();
 
 // Middleware
-app.use(cors());
+// Middleware
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || '*', // Allow specific frontend or all
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use(express.static(path.join(__dirname, '../frontend')));
+
+// Serve frontend only if it exists (Optional for monorepo)
+// app.use(express.static(path.join(__dirname, '../frontend')));
 
 app.get('/', (req, res) => {
   res.send({
@@ -19,8 +28,19 @@ app.get('/', (req, res) => {
     message: 'Portfolio API is running!'
   })
 })
+
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/portfolio')
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error('❌ MONGODB_URI is not defined in environment variables.');
+  // In production, we might want to exit. In dev, we can warn.
+  if (process.env.NODE_ENV === 'production') {
+    process.exit(1);
+  }
+}
+
+mongoose.connect(MONGODB_URI || 'mongodb://localhost:27017/portfolio') // Fallback for local dev only
   .then(() => console.log('✅ MongoDB Connected Successfully'))
   .catch(err => console.error('❌ MongoDB Connection Error:', err));
 
@@ -57,5 +77,5 @@ app.get('/api/health', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
