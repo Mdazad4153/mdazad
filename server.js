@@ -8,8 +8,34 @@ const app = express();
 
 // Middleware
 // Middleware
+// Middleware
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || '*', // Allow specific frontend or all
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    // Define allowed origins
+    const allowedOrigins = [
+      'http://localhost:5500',
+      'http://localhost:3000',
+      'http://127.0.0.1:5500',
+      'https://mdazad.netlify.app',
+      process.env.FRONTEND_URL
+    ].filter(Boolean); // Remove empty values
+
+    // Check if the origin is in the allowed list
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    }
+
+    // Fallback: If no FRONTEND_URL is enforced yet, allow the origin (Reflect)
+    // This allows the Netlify app to work immediately without setting env vars first
+    if (!process.env.FRONTEND_URL) {
+      return callback(null, true);
+    }
+
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   optionsSuccessStatus: 200
 };
